@@ -3,33 +3,41 @@ import SwiftUI
 struct TemporaryHomeView: View {
     let onSignedOut: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isSigningOut = false
     @State private var errorText: String?
+
+    private var foregroundColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var buttonFill: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var buttonText: Color {
+        colorScheme == .dark ? .black : .white
+    }
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Image("JBIBackground")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
-                    .ignoresSafeArea()
+                AppScreenBackground()
 
                 VStack(spacing: 18) {
                     Text("Welcome to Just Bean It.")
                         .font(.system(size: 32, weight: .heavy))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(foregroundColor)
                         .multilineTextAlignment(.center)
 
                     Text("Your account is ready.")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.88))
+                        .foregroundStyle(foregroundColor.opacity(0.78))
 
                     if let errorText {
                         Text(errorText)
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.78))
+                            .foregroundStyle(foregroundColor.opacity(0.78))
                             .multilineTextAlignment(.center)
                     }
 
@@ -38,9 +46,9 @@ struct TemporaryHomeView: View {
                     } label: {
                         Text(isSigningOut ? "Signing out..." : "Sign out")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.black.opacity(0.82))
+                            .foregroundStyle(buttonText)
                             .frame(width: 150, height: 42)
-                            .background(Color.white.opacity(0.88))
+                            .background(buttonFill)
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -50,9 +58,7 @@ struct TemporaryHomeView: View {
                 .padding(.horizontal, 28)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
-            .ignoresSafeArea()
         }
-        .ignoresSafeArea()
     }
 
     private func signOut() {

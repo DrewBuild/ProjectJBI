@@ -15,9 +15,36 @@ struct LoginView: View {
     let pendingLastName: String
     let pendingUsername: String
 
+    @Environment(\.colorScheme) private var colorScheme
+
     private let authService = AuthService()
-    private let accentPink = Color(red: 1.0, green: 0.22, blue: 0.62)
-    private let fieldFill = Color(red: 0.94, green: 0.73, blue: 0.72)
+    private var accentColor: Color {
+        Color.jbiAccent(for: colorScheme)
+    }
+
+    private var accentTextColor: Color {
+        colorScheme == .dark ? JBITheme.darkBlue : .white
+    }
+
+    private var fieldFill: Color {
+        colorScheme == .dark ? JBITheme.lightBlue.opacity(0.88) : JBITheme.lightBlue.opacity(0.42)
+    }
+
+    private var foregroundColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var secondaryColor: Color {
+        foregroundColor.opacity(0.82)
+    }
+
+    private var popupFill: Color {
+        colorScheme == .dark ? Color.black.opacity(0.92) : Color.white.opacity(0.95)
+    }
+
+    private var popupBorder: Color {
+        colorScheme == .dark ? Color.white.opacity(0.18) : Color.black.opacity(0.12)
+    }
 
     @State private var email: String
     @State private var password = ""
@@ -55,12 +82,7 @@ struct LoginView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Image("JBIBackground")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
-                    .ignoresSafeArea()
+                SolidAppBackground()
 
                 backButton(in: geometry)
 
@@ -80,7 +102,7 @@ struct LoginView: View {
 
                         Text(message ?? " ")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.86))
+                            .foregroundStyle(foregroundColor.opacity(0.86))
                             .multilineTextAlignment(.center)
                             .frame(width: min(geometry.size.width * 0.78, 320))
                             .frame(minHeight: 18)
@@ -88,9 +110,9 @@ struct LoginView: View {
                         Button(action: login) {
                             Text(isSubmitting ? "entering" : "enter")
                                 .font(.system(size: 16, weight: .heavy))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(accentTextColor)
                                 .frame(width: 132, height: 40)
-                                .background(accentPink.opacity(isLoginEnabled ? 0.95 : 0.45))
+                                .background(accentColor.opacity(isLoginEnabled ? 0.95 : 0.45))
                                 .clipShape(Capsule())
                         }
                         .buttonStyle(.plain)
@@ -99,7 +121,7 @@ struct LoginView: View {
                         Button(action: openResetPopup) {
                             Text("forgot password?")
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(.white.opacity(0.82))
+                                .foregroundStyle(secondaryColor)
                         }
                         .buttonStyle(.plain)
                         .padding(.top, 2)
@@ -136,27 +158,27 @@ struct LoginView: View {
     private var titleStack: some View {
         VStack(spacing: 0) {
             Text(typedGreeting.isEmpty ? " " : typedGreeting)
-                .font(.system(size: 36, weight: .heavy))
-                .foregroundStyle(.white)
+                .font(.system(size: 48, weight: .black))
+                .foregroundStyle(foregroundColor)
 
             Text("LOG IN BY")
                 .font(.system(size: 26, weight: .heavy))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
                 .padding(.top, 2)
 
             Text("EMAIL")
                 .font(.system(size: 42, weight: .heavy))
-                .foregroundStyle(accentPink)
+                .foregroundStyle(accentColor)
                 .padding(.top, 2)
 
             Text("AND")
                 .font(.system(size: 26, weight: .heavy))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
                 .padding(.top, -2)
 
             Text("PASSWORD")
                 .font(.system(size: 42, weight: .heavy))
-                .foregroundStyle(accentPink)
+                .foregroundStyle(accentColor)
                 .padding(.top, -2)
         }
         .multilineTextAlignment(.center)
@@ -371,7 +393,7 @@ struct LoginView: View {
                 HStack {
                     Text("RESET PASSWORD")
                         .font(.system(size: 22, weight: .heavy))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(foregroundColor)
 
                     Spacer()
 
@@ -382,7 +404,7 @@ struct LoginView: View {
                     } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 13, weight: .heavy))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(foregroundColor)
                             .frame(width: 32, height: 32)
                             .background(Color.white.opacity(0.16))
                             .clipShape(Circle())
@@ -392,7 +414,7 @@ struct LoginView: View {
 
                 Text("Enter your email and we'll send a reset link.")
                     .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.86))
+                    .foregroundStyle(foregroundColor.opacity(0.86))
                     .multilineTextAlignment(.center)
 
                 TextField("", text: $resetEmail, prompt: Text("email").foregroundStyle(.black.opacity(0.46)))
@@ -411,7 +433,7 @@ struct LoginView: View {
 
                 Text(resetMessage ?? " ")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.84))
+                    .foregroundStyle(foregroundColor.opacity(0.84))
                     .multilineTextAlignment(.center)
                     .frame(width: min(geometry.size.width * 0.76, 310))
                     .frame(minHeight: 18)
@@ -419,9 +441,9 @@ struct LoginView: View {
                 Button(action: sendPasswordReset) {
                     Text(isSendingReset ? "sending" : "Send reset link")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(accentTextColor)
                         .frame(width: 160, height: 38)
-                        .background(accentPink.opacity(isSendingReset ? 0.5 : 0.95))
+                        .background(accentColor.opacity(isSendingReset ? 0.5 : 0.95))
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -430,17 +452,13 @@ struct LoginView: View {
             .padding(22)
             .frame(width: geometry.size.width * 0.9)
             .background {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 34, style: .continuous)
-                        .fill(.ultraThinMaterial)
-
-                    RoundedRectangle(cornerRadius: 34, style: .continuous)
-                        .fill(Color(red: 0.45, green: 0.05, blue: 0.45).opacity(0.42))
-                }
+                RoundedRectangle(cornerRadius: 34, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(popupFill)
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 34, style: .continuous)
-                    .stroke(Color.white.opacity(0.28), lineWidth: 1)
+                    .stroke(popupBorder, lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
             .shadow(color: .black.opacity(0.3), radius: 24, x: 0, y: 12)

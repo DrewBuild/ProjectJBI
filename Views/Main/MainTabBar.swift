@@ -19,8 +19,8 @@ enum MainTab: CaseIterable, Hashable {
 
     var symbol: String {
         switch self {
-        case .feed: return "newspaper.fill"
-        case .discover: return "map.fill"
+        case .feed: return "mug.fill"
+        case .discover: return "storefront.fill"
         case .post: return "plus.viewfinder"
         case .stats: return "flame.fill"
         case .profile: return "person.crop.rectangle.fill"
@@ -31,9 +31,7 @@ enum MainTab: CaseIterable, Hashable {
 struct MainTabBar: View {
     @Binding var selectedTab: MainTab
 
-    private let hotPink = Color(red: 1.0, green: 0.12, blue: 0.72)
-    private let tintTop = Color(red: 0.45, green: 0.20, blue: 0.55).opacity(0.45)
-    private let tintBottom = Color(red: 0.28, green: 0.10, blue: 0.40).opacity(0.45)
+    @Environment(\.colorScheme) private var colorScheme
     private let tabs = MainTab.allCases
     private let barHeight: CGFloat = 66
     private let indicatorHeight: CGFloat = 46
@@ -80,8 +78,8 @@ struct MainTabBar: View {
         } label: {
             Image(systemName: tab.symbol)
                 .font(.system(size: tab == .post ? 22 : 18, weight: .bold))
-                .foregroundStyle(isSelected ? hotPink : Color.white.opacity(0.62))
-                .shadow(color: isSelected ? hotPink.opacity(0.55) : .clear, radius: 6, x: 0, y: 0)
+                .foregroundStyle(isSelected ? Color.jbiAccent(for: colorScheme) : Color.white.opacity(0.62))
+                .shadow(color: isSelected ? Color.jbiAccent(for: colorScheme).opacity(0.55) : .clear, radius: 6, x: 0, y: 0)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
         }
@@ -89,19 +87,8 @@ struct MainTabBar: View {
     }
 
     private var barBackground: some View {
-        ZStack {
-            Capsule()
-                .fill(.ultraThinMaterial)
-
-            Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [tintTop, tintBottom],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-        }
+        Capsule()
+            .fill(.ultraThinMaterial)
         .overlay(
             Capsule()
                 .stroke(Color.white.opacity(0.22), lineWidth: 1)
@@ -115,22 +102,19 @@ struct MainTabBar: View {
                 .fill(.ultraThinMaterial)
 
             Capsule()
-                .fill(hotPink.opacity(0.30))
+                .fill(Color.jbiAccent(for: colorScheme).opacity(0.30))
         }
         .overlay(
             Capsule()
                 .stroke(Color.white.opacity(0.45), lineWidth: 1)
         )
-        .shadow(color: hotPink.opacity(0.55), radius: 10, x: 0, y: 0)
+        .shadow(color: Color.jbiAccent(for: colorScheme).opacity(0.55), radius: 10, x: 0, y: 0)
     }
 }
 
 #Preview {
     ZStack {
-        Image("JBIBackground")
-            .resizable()
-            .scaledToFill()
-            .ignoresSafeArea()
+        AppScreenBackground()
 
         VStack {
             Spacer()

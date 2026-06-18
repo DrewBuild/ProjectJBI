@@ -3,15 +3,28 @@ import SwiftUI
 struct EmailConfirmView: View {
     let email: String
 
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var foregroundColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var secondaryColor: Color {
+        foregroundColor.opacity(0.78)
+    }
+
+    private var buttonFill: Color {
+        Color.jbiAccent(for: colorScheme)
+    }
+
+    private var buttonText: Color {
+        colorScheme == .dark ? JBITheme.darkBlue : .white
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Image("JBIBackground")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
-                    .ignoresSafeArea()
+                SolidAppBackground()
 
                 confirmationPanel(in: geometry)
                     .position(x: geometry.size.width / 2, y: geometry.size.height * 0.75)
@@ -31,18 +44,18 @@ struct EmailConfirmView: View {
         VStack(spacing: 11) {
             Text("WELCOME")
                 .font(.system(size: 24, weight: .heavy))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
                 .padding(.top, 30)
 
             Text("We just sent you\nan email to\n\(displayEmail)")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
                 .multilineTextAlignment(.center)
                 .lineSpacing(1)
 
             Text("Tap the confirmation link in your email, then log in.")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(foregroundColor.opacity(0.9))
                 .multilineTextAlignment(.center)
                 .padding(.top, 5)
 
@@ -51,9 +64,9 @@ struct EmailConfirmView: View {
             } label: {
                 Text("log in")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(buttonText)
                     .frame(width: 88, height: 26)
-                    .background(Color.black.opacity(0.82))
+                    .background(buttonFill)
                     .clipShape(Capsule())
             }
             .buttonStyle(.plain)
@@ -63,20 +76,15 @@ struct EmailConfirmView: View {
         }
         .frame(width: geometry.size.width, height: geometry.size.height * 0.50)
         .background {
-            ZStack {
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-
-                Rectangle()
-                    .fill(Color(red: 0.45, green: 0.05, blue: 0.45).opacity(0.42))
-            }
+            Rectangle()
+                .fill(.ultraThinMaterial)
         }
         .clipShape(.rect(topLeadingRadius: 34, topTrailingRadius: 34))
         .overlay(
             UnevenRoundedRectangle(topLeadingRadius: 34, topTrailingRadius: 34)
-                .stroke(Color.white.opacity(0.28), lineWidth: 1)
+                .stroke(secondaryColor.opacity(0.28), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.28), radius: 24, x: 0, y: -8)
+        .shadow(color: .black.opacity(0.18), radius: 24, x: 0, y: -8)
     }
 
     private var displayEmail: String {

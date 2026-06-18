@@ -3,8 +3,33 @@ import UIKit
 
 struct CreateAccountFlowView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     let onAuthenticated: () -> Void
+
+    private var foregroundColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var secondaryColor: Color {
+        foregroundColor.opacity(0.78)
+    }
+
+    private var primaryButtonFill: Color {
+        Color.jbiAccent(for: colorScheme)
+    }
+
+    private var primaryButtonText: Color {
+        colorScheme == .dark ? JBITheme.darkBlue : .white
+    }
+
+    private var confirmationCardFill: Color {
+        colorScheme == .dark ? JBITheme.darkBlue : JBITheme.lightBlue.opacity(0.88)
+    }
+
+    private var confirmationBorderColor: Color {
+        colorScheme == .dark ? JBITheme.lightBlue.opacity(0.30) : JBITheme.darkBlue.opacity(0.18)
+    }
 
     private let authService = AuthService()
 
@@ -40,12 +65,7 @@ struct CreateAccountFlowView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Image("JBIBackground")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
-                    .ignoresSafeArea()
+                SolidAppBackground()
 
                 currentStepView
 
@@ -497,12 +517,7 @@ struct CreateAccountFlowView: View {
     private var confirmationStepView: some View {
         GeometryReader { geometry in
             ZStack {
-                Image("JBIBackground")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
-                    .ignoresSafeArea()
+                SolidAppBackground()
 
                 flowBackButton(in: geometry)
 
@@ -524,23 +539,23 @@ struct CreateAccountFlowView: View {
         VStack(spacing: 12) {
             Text("CHECK YOUR EMAIL")
                 .font(.system(size: 28, weight: .heavy))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
 
             Text("We sent a confirmation link to\n\(displayEmail)")
                 .font(.system(size: 15, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
                 .multilineTextAlignment(.center)
                 .lineSpacing(2)
 
             Text("Tap the link in your email.\nThen come back here to finish.")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(foregroundColor.opacity(0.9))
                 .multilineTextAlignment(.center)
                 .frame(width: min(geometry.size.width * 0.82, 320))
 
             Text(serviceErrorText ?? resendText)
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white.opacity(0.78))
+                .foregroundStyle(secondaryColor)
                 .multilineTextAlignment(.center)
                 .frame(width: min(geometry.size.width * 0.82, 320))
                 .frame(minHeight: 18)
@@ -551,9 +566,9 @@ struct CreateAccountFlowView: View {
                 } label: {
                     Text("I confirmed my email")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(primaryButtonText)
                         .frame(width: 210, height: 38)
-                        .background(Color.black.opacity(0.82))
+                        .background(primaryButtonFill)
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -565,9 +580,9 @@ struct CreateAccountFlowView: View {
                 } label: {
                     Text("Resend email")
                         .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(foregroundColor)
                         .frame(width: 160, height: 34)
-                        .background(Color.white.opacity(0.18))
+                        .background(foregroundColor.opacity(0.12))
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -579,7 +594,7 @@ struct CreateAccountFlowView: View {
                 } label: {
                     Text("Log in instead")
                         .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.84))
+                        .foregroundStyle(foregroundColor.opacity(0.84))
                 }
                 .buttonStyle(.plain)
             }
@@ -589,26 +604,37 @@ struct CreateAccountFlowView: View {
         .padding(.horizontal, 22)
         .padding(.top, 26)
         .frame(width: geometry.size.width * 0.9, height: geometry.size.height * 0.50)
-        .confirmationCardStyle()
+        .confirmationCardStyle(fill: confirmationCardFill, border: confirmationBorderColor)
         .shadow(color: .black.opacity(0.28), radius: 24, x: 0, y: -8)
     }
 
     private func successCard(in geometry: GeometryProxy) -> some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 16) {
             Text("SUCCESSFUL!")
                 .font(.system(size: 30, weight: .heavy))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
 
             Text(successWelcomeText)
                 .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(.white.opacity(0.92))
+                .foregroundStyle(foregroundColor.opacity(0.92))
                 .multilineTextAlignment(.center)
                 .lineSpacing(2)
                 .frame(width: min(geometry.size.width * 0.78, 320))
+
+            Button(action: enterAfterSuccessfulConfirmation) {
+                Text("Enter")
+                    .font(.system(size: 15, weight: .heavy))
+                    .foregroundStyle(primaryButtonText)
+                    .frame(width: 148, height: 40)
+                    .background(primaryButtonFill)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 2)
         }
         .padding(24)
-        .frame(width: geometry.size.width * 0.9, height: geometry.size.height * 0.32)
-        .confirmationCardStyle()
+        .frame(width: geometry.size.width * 0.9, height: geometry.size.height * 0.36)
+        .confirmationCardStyle(fill: confirmationCardFill, border: confirmationBorderColor)
         .shadow(color: .black.opacity(0.28), radius: 24, x: 0, y: -8)
     }
 
@@ -699,13 +725,6 @@ struct CreateAccountFlowView: View {
                     isSignupSuccessful = true
                 }
 
-                try? await Task.sleep(nanoseconds: 1_150_000_000)
-
-                await MainActor.run {
-                    guard isSignupSuccessful else { return }
-                    onAuthenticated()
-                    dismiss()
-                }
             } catch AuthServiceError.emailNotConfirmed {
                 await MainActor.run {
                     isFinishingConfirmation = false
@@ -739,6 +758,12 @@ struct CreateAccountFlowView: View {
         isShowingConfirmation = false
         hideKeyboard()
         isShowingLogin = true
+    }
+
+    private func enterAfterSuccessfulConfirmation() {
+        guard isSignupSuccessful else { return }
+        onAuthenticated()
+        dismiss()
     }
 
     private var successWelcomeText: String {
@@ -805,20 +830,16 @@ struct CreateAccountFlowView: View {
 }
 
 private extension View {
-    func confirmationCardStyle() -> some View {
+    func confirmationCardStyle(fill: Color, border: Color) -> some View {
         self
             .background {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 34, style: .continuous)
-                        .fill(.ultraThinMaterial)
-
-                    RoundedRectangle(cornerRadius: 34, style: .continuous)
-                        .fill(Color(red: 0.45, green: 0.05, blue: 0.45).opacity(0.42))
-                }
+                RoundedRectangle(cornerRadius: 34, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(fill)
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 34, style: .continuous)
-                    .stroke(Color.white.opacity(0.28), lineWidth: 1)
+                    .stroke(border, lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
     }

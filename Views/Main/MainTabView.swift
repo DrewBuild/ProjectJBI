@@ -3,95 +3,75 @@ import SwiftUI
 struct MainTabView: View {
     let onSignedOut: () -> Void
 
-    @State private var selectedTab: MainTab = .feed
-    @State private var isTabBarMinimized = false
+    @Environment(\.colorScheme) private var colorScheme
 
-    private let displayName = "Drew J."
-    private let hotPink = Color(red: 1.0, green: 0.12, blue: 0.72)
+    @State private var selectedTab: MainTab = .feed
+    @State private var headerDisplayName = "Just Bean It"
+
+    private let profileService = ProfileService()
 
     var body: some View {
-        ZStack {
-            tabContent
-                .tint(hotPink)
-
-            if isTabBarMinimized {
-                VStack {
-                    Spacer()
-                    restoreButton
-                        .padding(.bottom, 26)
-                        .transition(.opacity.combined(with: .scale(scale: 0.85)))
-                }
-                .allowsHitTesting(true)
+        tabContent
+            .tint(Color.jbiAccent(for: colorScheme))
+            .accentColor(Color.jbiAccent(for: colorScheme))
+            .task {
+                await loadHeaderDisplayName()
             }
-        }
-        .animation(.easeInOut(duration: 0.22), value: isTabBarMinimized)
     }
 
     @ViewBuilder
     private var tabContent: some View {
         if #available(iOS 26.0, *) {
-            baseTabView
+            tabs
                 .tabBarMinimizeBehavior(.onScrollDown)
         } else {
-            baseTabView
+            tabs
         }
     }
 
-    private var baseTabView: some View {
+    private var tabs: some View {
         TabView(selection: $selectedTab) {
-            FeedView(displayName: displayName, isTabBarMinimized: $isTabBarMinimized)
+            FeedView(displayName: headerDisplayName, onSignedOut: onSignedOut)
                 .tabItem {
-                    Label("Feed", systemImage: "newspaper.fill")
+                    Label("Feed", systemImage: "mug.fill")
                 }
                 .tag(MainTab.feed)
 
-            DiscoverView(displayName: displayName, isTabBarMinimized: $isTabBarMinimized)
+            DiscoverView(displayName: headerDisplayName, onSignedOut: onSignedOut)
                 .tabItem {
-                    Label("Discover", systemImage: "map.fill")
+                    Label("Discover", systemImage: "storefront.fill")
                 }
                 .tag(MainTab.discover)
 
-            PostView(displayName: displayName, isTabBarMinimized: $isTabBarMinimized)
+            PostView(displayName: headerDisplayName, onSignedOut: onSignedOut) {
+                selectedTab = .feed
+            }
                 .tabItem {
                     Label("Post", systemImage: "plus.viewfinder")
                 }
                 .tag(MainTab.post)
 
-            StatsView(displayName: displayName, isTabBarMinimized: $isTabBarMinimized)
+            StatsView(displayName: headerDisplayName, onSignedOut: onSignedOut)
                 .tabItem {
                     Label("Stats", systemImage: "flame.fill")
                 }
                 .tag(MainTab.stats)
 
-            ProfileView(
-                displayName: displayName,
-                isTabBarMinimized: $isTabBarMinimized,
-                onSignedOut: onSignedOut
-            )
-            .tabItem {
-                Label("Profile", systemImage: "person.crop.rectangle.fill")
-            }
-            .tag(MainTab.profile)
+            ProfileView(onSignedOut: onSignedOut)
+                .tabItem {
+                    Label("Profile", systemImage: "person.crop.rectangle.fill")
+                }
+                .tag(MainTab.profile)
         }
     }
 
-    private var restoreButton: some View {
-        Button {
-            NotificationCenter.default.post(name: .jbiRevealTabBar, object: nil)
-        } label: {
-            Image(systemName: "rectangle.stack")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(hotPink)
-                .frame(width: 52, height: 52)
-                .background(.ultraThinMaterial, in: Circle())
-                .overlay(
-                    Circle()
-                        .stroke(Color.white.opacity(0.28), lineWidth: 1)
-                )
-                .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 4)
+    @MainActor
+    private func loadHeaderDisplayName() async {
+        do {
+            headerDisplayName = try await profileService.fetchCurrentProfile().headerDisplayName
+        } catch {
+            print("MainTabView profile display name load failed:", error)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Show tab bar")
     }
 }
 

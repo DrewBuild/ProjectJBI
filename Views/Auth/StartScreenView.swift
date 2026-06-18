@@ -4,7 +4,23 @@ import UIKit
 struct StartScreenView: View {
     var onAuthenticated: () -> Void = {}
 
-    private let buttonFill = Color(red: 0.94, green: 0.73, blue: 0.72)
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var characterAssetName: String {
+        colorScheme == .dark ? "JBICharacterL" : "JBICharacterD"
+    }
+
+    private var foregroundColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var primaryButtonFill: Color {
+        Color.jbiAccent(for: colorScheme)
+    }
+
+    private var primaryButtonText: Color {
+        colorScheme == .dark ? JBITheme.darkBlue : .white
+    }
     private let phrases = [
         "Rate every cup.",
         "Share your favorite coffee spots.",
@@ -23,12 +39,7 @@ struct StartScreenView: View {
             ZStack {
                 GeometryReader { geometry in
                     ZStack {
-                        Image("JBIBackground")
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: geometry.size.width, height: geometry.size.height)
-                            .clipped()
-                            .ignoresSafeArea()
+                        SolidAppBackground()
 
                         headlineSection(in: geometry)
                             .position(
@@ -36,7 +47,7 @@ struct StartScreenView: View {
                                 y: geometry.size.height * headlineYRatio(for: geometry.size.height)
                             )
 
-                        Image("JBICharacter")
+                        Image(characterAssetName)
                             .resizable()
                             .scaledToFit()
                             .frame(width: characterWidth(for: geometry.size.width))
@@ -48,7 +59,7 @@ struct StartScreenView: View {
 
                         Text(displayedText.isEmpty ? " " : displayedText)
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(foregroundColor)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .frame(width: min(geometry.size.width - 56, 320), height: 44)
@@ -98,11 +109,17 @@ struct StartScreenView: View {
         }
         .ignoresSafeArea()
         .onAppear {
-            isStartScreenVisible = true
             startTypingAnimation()
         }
         .onDisappear {
             stopTypingAnimation()
+        }
+        .onChange(of: isShowingCreateFlow) { _, isShowing in
+            if isShowing {
+                stopTypingAnimation()
+            } else {
+                startTypingAnimation()
+            }
         }
     }
 
@@ -110,14 +127,14 @@ struct StartScreenView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text("JUST BEAN IT.")
                 .font(.system(size: titleSize(for: geometry.size.width), weight: .heavy))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
                 .lineSpacing(0)
                 .minimumScaleFactor(0.9)
                 .lineLimit(1)
 
             Text("FIRST EVER COFFEE SOCIAL\nMEDIA APP.")
                 .font(.system(size: subtitleSize(for: geometry.size.width), weight: .heavy))
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(foregroundColor.opacity(0.9))
                 .lineSpacing(0)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -132,25 +149,25 @@ struct StartScreenView: View {
             } label: {
                 Text("CREATE")
                     .font(.system(size: 20, weight: .heavy))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(primaryButtonText)
                     .frame(width: 250, height: 56)
-                    .background(buttonFill)
+                    .background(primaryButtonFill)
                     .clipShape(Capsule())
             }
             .buttonStyle(.plain)
 
             Text("or")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
 
             Button {
                 openLogin()
             } label: {
                 Text("LOG IN")
                     .font(.system(size: 20, weight: .heavy))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(primaryButtonText)
                     .frame(width: 250, height: 56)
-                    .background(buttonFill)
+                    .background(primaryButtonFill)
                     .clipShape(Capsule())
             }
             .buttonStyle(.plain)
@@ -161,7 +178,7 @@ struct StartScreenView: View {
         VStack(spacing: 0) {
             Text("By continuing, you agree to our")
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(.white.opacity(0.76))
+                .foregroundStyle(foregroundColor.opacity(0.76))
 
             HStack(spacing: 3) {
                 Button {
@@ -181,7 +198,7 @@ struct StartScreenView: View {
                 }
             }
             .font(.system(size: 11, weight: .bold))
-            .foregroundStyle(.white.opacity(0.76))
+            .foregroundStyle(foregroundColor.opacity(0.76))
             .buttonStyle(.plain)
         }
         .multilineTextAlignment(.center)

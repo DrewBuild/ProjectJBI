@@ -43,6 +43,28 @@ struct LegalPopupView: View {
     let document: LegalDocument
     let onClose: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var foregroundColor: Color {
+        colorScheme == .dark ? .white : JBITheme.darkBlue
+    }
+
+    private var cardFill: Color {
+        colorScheme == .dark ? JBITheme.darkBlue : JBITheme.lightBlue.opacity(0.88)
+    }
+
+    private var borderColor: Color {
+        colorScheme == .dark ? JBITheme.lightBlue.opacity(0.30) : JBITheme.darkBlue.opacity(0.18)
+    }
+
+    private var buttonFill: Color {
+        Color.jbiAccent(for: colorScheme)
+    }
+
+    private var buttonText: Color {
+        colorScheme == .dark ? JBITheme.darkBlue : .white
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -54,16 +76,16 @@ struct LegalPopupView: View {
                     HStack {
                         Text(document.title)
                             .font(.system(size: 24, weight: .heavy))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(foregroundColor)
 
                         Spacer()
 
                         Button(action: onClose) {
                             Image(systemName: "xmark")
                                 .font(.system(size: 14, weight: .heavy))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(buttonText)
                                 .frame(width: 32, height: 32)
-                                .background(Color.white.opacity(0.16))
+                                .background(buttonFill)
                                 .clipShape(Circle())
                         }
                         .buttonStyle(.plain)
@@ -72,7 +94,7 @@ struct LegalPopupView: View {
                     ScrollView {
                         Text(document.bodyText)
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.88))
+                            .foregroundStyle(foregroundColor.opacity(0.88))
                             .lineSpacing(4)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.bottom, 10)
@@ -86,26 +108,13 @@ struct LegalPopupView: View {
                     height: min(max(geometry.size.height * 0.74, geometry.size.height * 0.70), geometry.size.height * 0.78)
                 )
                 .background {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 34, style: .continuous)
-                            .fill(.regularMaterial)
-
-                        RoundedRectangle(cornerRadius: 34, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.48, green: 0.05, blue: 0.52).opacity(0.50),
-                                        Color(red: 0.95, green: 0.38, blue: 0.62).opacity(0.22)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                    }
+                    RoundedRectangle(cornerRadius: 34, style: .continuous)
+                        .fill(.regularMaterial)
+                        .overlay(cardFill)
                 }
                 .overlay(
                     RoundedRectangle(cornerRadius: 34, style: .continuous)
-                        .stroke(Color.white.opacity(0.28), lineWidth: 1)
+                        .stroke(borderColor, lineWidth: 1)
                 )
                 .shadow(color: .black.opacity(0.3), radius: 28, x: 0, y: 12)
             }

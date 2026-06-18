@@ -46,18 +46,55 @@ struct CreateStepView: View {
     @Binding var hasAcceptedLegal: Bool
     let focusedField: FocusState<CreateAccountField?>.Binding
 
+    @Environment(\.colorScheme) private var colorScheme
+
     @State private var typedTitle = ""
     @State private var titleAnimationTask: Task<Void, Never>?
+
+    private var foregroundColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var secondaryColor: Color {
+        foregroundColor.opacity(0.72)
+    }
+
+    private var jbiDarkBlue: Color {
+        Color(red: 1.0 / 255.0, green: 58.0 / 255.0, blue: 99.0 / 255.0)
+    }
+
+    private var jbiLightBlue: Color {
+        Color(red: 137.0 / 255.0, green: 194.0 / 255.0, blue: 217.0 / 255.0)
+    }
+
+    private var accentColor: Color {
+        colorScheme == .dark ? jbiLightBlue : jbiDarkBlue
+    }
+
+    private var primaryButtonFill: Color {
+        accentColor
+    }
+
+    private var primaryButtonText: Color {
+        colorScheme == .dark ? jbiDarkBlue : .white
+    }
+
+    private var disabledPrimaryButtonText: Color {
+        colorScheme == .dark ? jbiDarkBlue.opacity(0.55) : .white.opacity(0.65)
+    }
+
+    private var validationGreen: Color {
+        Color(red: 0.20, green: 0.78, blue: 0.35)
+    }
+
+    private var fieldFill: Color {
+        colorScheme == .dark ? jbiLightBlue.opacity(0.88) : jbiLightBlue.opacity(0.42)
+    }
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Image("JBIBackground")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
-                    .ignoresSafeArea()
+                SolidAppBackground()
 
                 topControls(in: geometry)
 
@@ -72,7 +109,7 @@ struct CreateStepView: View {
 
                 Text(previewText)
                     .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(foregroundColor)
                     .multilineTextAlignment(.center)
                     .frame(width: geometry.size.width - 56)
                     .position(
@@ -131,7 +168,7 @@ struct CreateStepView: View {
         VStack(spacing: 12) {
             Text(typedTitle.isEmpty ? " " : typedTitle)
                 .font(.system(size: titleSize, weight: .heavy))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
                 .multilineTextAlignment(.center)
                 .lineSpacing(1)
                 .textCase(.uppercase)
@@ -139,14 +176,14 @@ struct CreateStepView: View {
 
             Text(subtitle)
                 .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
                 .multilineTextAlignment(.center)
 
             inputField(width: min(geometry.size.width * 0.80, 310))
 
             Text(helperText ?? " ")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white.opacity(0.72))
+                .foregroundStyle(secondaryColor)
                 .multilineTextAlignment(.center)
                 .frame(height: 16)
 
@@ -157,26 +194,25 @@ struct CreateStepView: View {
 
             Text(serviceErrorText ?? " ")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(foregroundColor.opacity(0.8))
                 .multilineTextAlignment(.center)
                 .frame(width: min(geometry.size.width * 0.82, 320), height: 18)
 
             Button(action: onNext) {
                 Text("next")
                     .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(.black.opacity(0.82))
+                    .foregroundStyle(isNextEnabled ? primaryButtonText : disabledPrimaryButtonText)
                     .frame(width: 138, height: 38)
-                    .background(Color.white.opacity(0.88))
+                    .background(primaryButtonFill.opacity(isNextEnabled ? 1 : 0.35))
                     .clipShape(Capsule())
             }
             .buttonStyle(.plain)
             .disabled(!isNextEnabled)
-            .opacity(isNextEnabled ? 1 : 0.45)
             .padding(.top, 1)
 
             Text("\(step)/5")
                 .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
         }
         .frame(maxWidth: .infinity)
     }
@@ -215,7 +251,7 @@ struct CreateStepView: View {
 
     private func fieldBackground(width: CGFloat) -> some View {
         Capsule()
-            .fill(Color(red: 0.94, green: 0.73, blue: 0.72))
+            .fill(fieldFill)
             .frame(width: width, height: 44)
     }
 
@@ -249,7 +285,7 @@ struct CreateStepView: View {
         } else if field == .username, let usernameStatus, !text.isEmpty {
             Image(systemName: usernameStatus == .available ? "checkmark.circle.fill" : "xmark.circle.fill")
                 .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(usernameStatus == .available ? .green : .red)
+                .foregroundStyle(usernameStatus == .available ? validationGreen : .red)
         } else if field == .password {
             Button {
                 isPasswordVisible.toggle()
@@ -269,7 +305,7 @@ struct CreateStepView: View {
             } label: {
                 Image(systemName: hasAcceptedLegal ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(hasAcceptedLegal ? .green : .white.opacity(0.78))
+                    .foregroundStyle(hasAcceptedLegal ? validationGreen : secondaryColor)
             }
             .buttonStyle(.plain)
 
@@ -285,7 +321,7 @@ struct CreateStepView: View {
                     .underline()
             }
             .font(.system(size: 11, weight: .bold))
-            .foregroundStyle(.white.opacity(0.78))
+            .foregroundStyle(secondaryColor)
             .buttonStyle(.plain)
         }
         .frame(maxWidth: 320)
@@ -297,11 +333,11 @@ struct CreateStepView: View {
                 HStack(spacing: 7) {
                     Image(systemName: requirement.isMet ? "checkmark.circle.fill" : "xmark.circle.fill")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(requirement.isMet ? .green : .red)
+                        .foregroundStyle(requirement.isMet ? validationGreen : .red)
 
                     Text(requirement.title)
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.72))
+                        .foregroundStyle(secondaryColor)
                 }
             }
         }
@@ -375,7 +411,7 @@ extension CreateStepView {
             }
         }
         .font(.system(size: 11, weight: .bold))
-        .foregroundStyle(.white.opacity(0.72))
+        .foregroundStyle(secondaryColor)
         .buttonStyle(.plain)
         .multilineTextAlignment(.center)
     }
