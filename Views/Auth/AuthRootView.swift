@@ -9,9 +9,9 @@ struct AuthRootView: View {
             if isCheckingSession {
                 LoadingView()
             } else if isAuthenticated {
-                TemporaryHomeView {
+                MainTabView(onSignedOut: {
                     isAuthenticated = false
-                }
+                })
             } else {
                 StartScreenView {
                     isAuthenticated = true
